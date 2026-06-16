@@ -30,8 +30,7 @@ python3 -m src.streaming.producer
 
 This system ingests synthetic network events, detects anomalies, enriches them with semantic search, and selectively escalates for LLM-based root cause analysis.
 
-mermaid
-```
+```mermaid
 flowchart TD;
     A[Synthetic Data Generator] -->|publishes events| B[Kafka];
     B -->|consumes events| C[Anomaly Detection Service];
