@@ -47,39 +47,3 @@ flowchart TD;
     H --> I["FastAPI (serve results via API)"];
     I --> J["MCP Server (expose as tools)"];
 ```
-
-
-Architectural Diagram:
-
-[Synthetic Data Generator]
-        │
-        ▼ (publishes events)
-    [ Kafka ]
-        │
-        ▼ (consumes events)
-[Anomaly Detection Service]
-    │           │
-    ▼           ▼
-[Hugging Face]  [Pinecone]
- (classify)    (find similar past anomalies)
-    │           │
-    └─────┬─────┘
-          ▼
-   [Escalation Logic]
-    "Is this worth sending to the cloud LLM?"
-          │
-          ▼ (if yes)
-      [OpenAI / Claude]
-       (root-cause analysis)
-          │
-          ▼
-    [PostgreSQL]
-     (store result)
-          │
-          ▼
-    [FastAPI]
-     (serve results via API)
-          │
-          ▼
-    [MCP Server]
-     (expose as tools)
