@@ -38,6 +38,7 @@ def run_consumer():
 
         event = json.loads(msg.value().decode('utf-8')) #decode bytes to string and parse JSON
         print(f"\nReceived event for {event['interface_id']}")
+        print(f" Current anomaly: {event['anomaly']}")
 
         embedding = generate_embedding(event) #generate embedding for the event (not currently stored, but could be used for future analysis)
         print(f"Embedding generated (length: {len(embedding)})")
@@ -45,7 +46,7 @@ def run_consumer():
         cur.execute("""
             SELECT interface_id, vendor, rows_synced, null_rate, execution_time_ms, anomaly, embedding
             FROM interface_events
-            WHERE embedding IS NOT NULL
+            WHERE embedding IS NOT NULL and anomaly IS NOT NULL
             LIMIT 50
         """) #fetch past events with embeddings to compare against (limit to 50 for performance, can be optimized later)    
 
@@ -73,7 +74,11 @@ def run_consumer():
             print(f" Anomaly: {match['anomaly']}")
             print(f" Similarity score: {score:.4f}")
 
-            if score > 0.8:
+            if not event['anomaly']:
+                print("No anomaly detected - skipping root cause analysis.")
+                continue
+
+            if score > 0.9:
                 print("\nGenerating root cause analysis...\n")
                 explanation = generate_root_cause(event, match, score)
                 print(f"Root Cause Analysis:")
