@@ -1,0 +1,4 @@
+fastapi==0.111.0 # Web framework for building APIs with Python
+uvicorn[standard]==0.30.0 # ASGI server for running FastAPI applications
+pydantic==2.7.0 # Data validation and settings management
+psycopg2-binary==2.9.9 # Postgres database adapter
