@@ -1,5 +1,8 @@
-from openai import OpenAI
+from dotenv import load_dotenv #used to load environment variables from .env file.
 import os
+from openai import OpenAI
+
+load_dotenv() # loads .env into environment
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -8,24 +11,31 @@ def generate_root_cause(current_event: dict, similar_event: dict, similarity_sco
     Use OpenAI to generate a root cause analysis based on the current event and a similar past event.
     """
     prompt = f"""
-    You are an expert in diagnosing data interface issues in law enforcement systems
-    
-    A new event occurred:
-    Interface: {current_event['interface_id']}
-    Vendor: {current_event['vendor']}
-    Rows Synced: {current_event['rows_synced']}
-    Null Rate: {current_event['null_rate']}
-    Execution Time: {current_event['execution_time_ms']}
-    Anomaly: {current_event['anomaly']}
+        You are an expert in diagnosing data interface issues.
 
-    A similar past event was found:
-    Interface: {similar_event['interface_id']}
-    Anomaly: {similar_event['anomaly']}
+        ONLY use the information provided below.
+        DO NOT invent vendors, systems, or causes not explicitly stated.
 
-    Similarity score: {similarity_score: .2f}
+        Current event:
+        Interface: {current_event['interface_id']}
+        Vendor: {current_event['vendor']}
+        Rows Synced: {current_event['rows_synced']}
+        Null Rate: {current_event['null_rate']}
+        Execution Time: {current_event['execution_time_ms']}
+        Anomaly: {current_event['anomaly']}
 
-    Based on this, explain the most likely root cause in plain English.
-    Be concise (2-3 sentences) and actionable.
+        Similar past event:
+        Interface: {similar_event['interface_id']}
+        Vendor: {similar_event['vendor']}
+        Rows Synced: {similar_event['rows_synced']}
+        Null Rate: {similar_event['null_rate']}
+        Execution Time: {similar_event['execution_time_ms']}
+        Anomaly: {similar_event['anomaly']}
+
+        Similarity score: {similarity_score:.2f}
+
+        Explain the most likely root cause based ONLY on this data.
+        Be concise and do not introduce external assumptions.
     """
 
     response = client.chat.completions.create(

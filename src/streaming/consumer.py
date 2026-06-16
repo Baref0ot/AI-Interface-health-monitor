@@ -43,22 +43,24 @@ def run_consumer():
         print(f"Embedding generated (length: {len(embedding)})")
 
         cur.execute("""
-            SELECT
-                interface_id,
-                anomaly,
-                embedding
+            SELECT interface_id, vendor, rows_synced, null_rate, execution_time_ms, anomaly, embedding
             FROM interface_events
             WHERE embedding IS NOT NULL
             LIMIT 50
-        """)
+        """) #fetch past events with embeddings to compare against (limit to 50 for performance, can be optimized later)    
+
 
         rows = cur.fetchall()
 
         past_events = [
             {
                 "interface_id": row[0],
-                "anomaly": row[1],
-                "embedding": row[2],
+                "vendor": row[1],
+                "rows_synced": row[2],
+                "null_rate": row[3],
+                "execution_time_ms": row[4],
+                "anomaly": row[5],
+                "embedding": row[6],
             }
             for row in rows
         ]
