@@ -28,6 +28,8 @@ python3 -m src.streaming.producer
 
 ## Architectural Diagram
 
+This system ingests synthetic network events, detects anomalies, enriches them with semantic search, and selectively escalates for LLM-based root cause analysis.
+
 ```mermaid
 flowchart TD
     A[Synthetic Data Generator] -->|publishes events| B[Kafka]
@@ -44,7 +46,7 @@ flowchart TD
     G --> H[PostgreSQL<br>(store result)]
     H --> I[FastAPI<br>(serve results via API)]
     I --> J[MCP Server<br>(expose as tools)]
-``
+```
 
 
 
