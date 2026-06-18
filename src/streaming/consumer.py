@@ -1,6 +1,6 @@
 import json
 from confluent_kafka import Consumer
-from src.storage.db import get_connection, save_analysis
+from src.storage.db import get_connection, get_past_events_globally, get_recent_events_for_agency, save_analysis
 from src.ai.embeddings import generate_embedding
 from src.ai.similarity import find_most_similar
 from src.ai.analysis import generate_root_cause
@@ -44,47 +44,50 @@ def run_consumer():
         embedding = generate_embedding(event) 
         print(f"Embedding generated (length: {len(embedding)})")
 
-        #fetch past events with embeddings to compare against for cross-agency similarity in case we've seen this type of failure before in another agency.
-        cur.execute("""
-            SELECT interface_id, vendor, rows_synced, null_rate, execution_time_ms, anomaly, embedding
-            FROM interface_events
-            WHERE embedding IS NOT NULL and anomaly IS NOT NULL
-            LIMIT 50
-        """)     
-        global_agency_events_rows = cur.fetchall()
+        ###fetch past events with embeddings to compare against for cross-agency similarity in case we've seen this type of failure before in another agency.
+        ##cur.execute("""
+        ##    SELECT interface_id, vendor, rows_synced, null_rate, execution_time_ms, anomaly, embedding
+        ##    FROM interface_events
+        ##    WHERE embedding IS NOT NULL and anomaly IS NOT NULL
+        ##    LIMIT 50
+        ##""")     
+        ##global_agency_events_rows = cur.fetchall()
 
+        ###also fetch the most recent events for this specific interface to potentially infer a root cause from events leading up to this failure.
+        ##cur.execute("""
+        ##    SELECT interface_id, anomaly, timestamp
+        ##    FROM interface_events
+        ##    WHERE interface_id = %s
+        ##    ORDER BY timestamp DESC
+        ##    LIMIT 10
+        ##""", (event['interface_id'],))
+        ##same_agency_events_rows = cur.fetchall()
 
-        #also fetch the most recent events for this specific interface to potentially infer a root cause from events leading up to this failure.
-        cur.execute("""
-            SELECT interface_id, anomaly, timestamp
-            FROM interface_events
-            WHERE interface_id = %s
-            ORDER BY timestamp DESC
-            LIMIT 10
-        """, (event['interface_id'],))
-        same_agency_events_rows = cur.fetchall()
+        ##global_agency_events = [
+        ##    {
+        ##        "interface_id": row[0],
+        ##        "vendor": row[1],
+        ##        "rows_synced": row[2],
+        ##        "null_rate": row[3],
+        ##        "execution_time_ms": row[4],
+        ##        "anomaly": row[5],
+        ##        "embedding": row[6],
+        ##    }
+        ##    for row in global_agency_events_rows
+        ##]
 
-        global_agency_events = [
-            {
-                "interface_id": row[0],
-                "vendor": row[1],
-                "rows_synced": row[2],
-                "null_rate": row[3],
-                "execution_time_ms": row[4],
-                "anomaly": row[5],
-                "embedding": row[6],
-            }
-            for row in global_agency_events_rows
-        ]
+        ##same_agency_events = [
+        ##{
+        ##    "interface_id": row[0],
+        ##    "anomaly": row[1],
+        ##    "timestamp": row[2],
+        ## }
+        ## for row in same_agency_events_rows
+        ##]
 
-        same_agency_events = [
-        {
-            "interface_id": row[0],
-            "anomaly": row[1],
-            "timestamp": row[2],
-         }
-         for row in same_agency_events_rows
-        ]
+        global_agency_events = get_past_events_globally()
+        same_agency_events = get_recent_events_for_agency(event['interface_id'])
+
 
         if global_agency_events:
             match, score = find_most_similar(embedding, global_agency_events)

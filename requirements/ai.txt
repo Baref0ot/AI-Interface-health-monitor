@@ -1,2 +1,8 @@
 openai==1.35.0
 langchain==0.2.0
+sentence-transformers==2.7.0
+torch
+numpy
+scikit-learn
+httpx<0.28 # For making async HTTP requests to OpenAI API
+langsmith

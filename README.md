@@ -81,8 +81,16 @@ flowchart TD;
 
 ## Run this project (in the project terminal)
 
+### install dependencies
+python3 -m pip install -r requirements/base.txt
+python3 -m pip install -r requirements/ai.txt
+python3 -m pip install -r requirements/kafka.txt
+
 ### Start infrastructure
-docker compose up -d
+docker compose up -d          
+
+### start application
+uvicorn src.api.main:app --reload --reload-dir src
 
 ### Start consumer
 python3 -m src.streaming.consumer

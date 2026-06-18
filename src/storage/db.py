@@ -188,3 +188,65 @@ def get_latest_analysis():
         "root_cause": root_cause,
         "created_at": row[6]
     }
+
+
+
+def get_recent_events_for_agency(interface_id: str):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT interface_id, anomaly, timestamp
+        FROM interface_events
+        WHERE interface_id = %s
+        ORDER BY timestamp DESC
+        LIMIT 10
+    """, (interface_id,))
+
+    same_agency_events_rows = cur.fetchall()
+    conn.close()
+
+    same_agency_events = [
+        {
+            "interface_id": row[0],
+            "anomaly": row[1],
+            "timestamp": row[2]
+        }
+        for row in same_agency_events_rows
+    ]
+    return same_agency_events
+
+
+
+def get_past_events_globally():
+ #fetch past events with embeddings to compare against for cross-agency similarity in case we've seen this type of failure before in another agency.
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT interface_id, vendor, rows_synced, null_rate, execution_time_ms, anomaly, embedding
+            FROM interface_events
+            WHERE embedding IS NOT NULL and anomaly IS NOT NULL
+            LIMIT 50
+        """)     
+        global_agency_events_rows = cur.fetchall()
+        conn.close()
+
+        global_agency_events = [
+            {
+                "interface_id": row[0],
+                "vendor": row[1],
+                "rows_synced": row[2],
+                "null_rate": row[3],
+                "execution_time_ms": row[4],
+                "anomaly": row[5],
+                "embedding": row[6],
+            }
+            for row in global_agency_events_rows
+        ]
+        return global_agency_events
+
+
+    
+
+        

@@ -7,12 +7,26 @@ from datetime import datetime
 from src.ai.similarity import find_most_similar
 from src.ai.embeddings import generate_embedding
 from src.ai.analysis import generate_root_cause
-from src.storage.db import get_all_events, get_all_events_with_embeddings, get_anomalies, get_latest_event, get_latest_analysis
+from src.storage.db import get_all_events, get_all_events_with_embeddings, get_anomalies, get_latest_event, get_recent_events_for_agency, get_latest_analysis
 from src.streaming.producer import produce_event
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(title="Interface Health Monitor")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+app.add_middleware(
+    CORSMiddleware,   
+    allow_origins=[        
+        "http://localhost:5173",        
+        "http://127.0.0.1:5173"],    
+    allow_credentials=True,    
+    allow_methods=["*"],    
+    allow_headers=["*"],
+)
+
 
 # Temporary in-memory storage
 EVENT_STORE: List[InterfaceEvent] = []
@@ -61,15 +75,18 @@ def analyze(interface_id: str):
     # Step 4: similarity
     match, score = find_most_similar(embedding, past_events)
 
-    # Step 5: gating
+    # Step 5: get recent events of same agency for historical context to feed into LLM
+    recent_events_of_same_agency = get_recent_events_for_agency(interface_id)
+
+    # Step 6: gating
     if not current_event.get("anomaly"):
         return {
             "interface_id": interface_id,
             "message": "No anomaly detected"
         }
 
-    # Step 6: LLM
-    explanation = generate_root_cause(current_event, match, score)
+    # Step 7: LLM
+    explanation = generate_root_cause(current_event, match, score, recent_events_of_same_agency)
 
     return {
         "interface_id": interface_id,

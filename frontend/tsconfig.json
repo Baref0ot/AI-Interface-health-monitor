@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "./src/**/*",
+    "./env.d.ts",
+    "./vite.config.ts",
+    "./index.html"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
