@@ -23,12 +23,12 @@ flowchart TD;
     B -->|consumes events| C[Anomaly Detection Service];
 
     C --> D["Hugging Face (classify)"];
-    C --> E["Pinecone (find similar past anomalies)"];
+    C --> E["PostgreSQL Embeddings (find similar past anomalies - via cosine similarity search)"];
 
     D --> F[Escalation Logic];
     E --> F;
 
-    F -->|if yes| G["OpenAI / Claude (root-cause analysis)"];
+    F -->|if yes| G["OpenAI (root-cause analysis)"];
 
     G --> H["PostgreSQL (store result)"];
     H --> I["FastAPI (serve results via API)"];
