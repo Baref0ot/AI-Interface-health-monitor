@@ -40,20 +40,31 @@ def run_consumer():
         print(f"\nReceived event for {event['interface_id']}")
         print(f" Current anomaly: {event['anomaly']}")
 
-        embedding = generate_embedding(event) #generate embedding for the event (not currently stored, but could be used for future analysis)
+        #generate embedding for the event (not currently stored, but could be used for future analysis)
+        embedding = generate_embedding(event) 
         print(f"Embedding generated (length: {len(embedding)})")
 
+        #fetch past events with embeddings to compare against for cross-agency similarity in case we've seen this type of failure before in another agency.
         cur.execute("""
             SELECT interface_id, vendor, rows_synced, null_rate, execution_time_ms, anomaly, embedding
             FROM interface_events
             WHERE embedding IS NOT NULL and anomaly IS NOT NULL
             LIMIT 50
-        """) #fetch past events with embeddings to compare against (limit to 50 for performance, can be optimized later)    
+        """)     
+        global_agency_events_rows = cur.fetchall()
 
 
-        rows = cur.fetchall()
+        #also fetch the most recent events for this specific interface to potentially infer a root cause from events leading up to this failure.
+        cur.execute("""
+            SELECT interface_id, anomaly, timestamp
+            FROM interface_events
+            WHERE interface_id = %s
+            ORDER BY timestamp DESC
+            LIMIT 10
+        """, (event['interface_id'],))
+        same_agency_events_rows = cur.fetchall()
 
-        past_events = [
+        global_agency_events = [
             {
                 "interface_id": row[0],
                 "vendor": row[1],
@@ -63,13 +74,28 @@ def run_consumer():
                 "anomaly": row[5],
                 "embedding": row[6],
             }
-            for row in rows
+            for row in global_agency_events_rows
         ]
 
-        if past_events:
-            match, score = find_most_similar(embedding, past_events)
+        same_agency_events = [
+        {
+            "interface_id": row[0],
+            "anomaly": row[1],
+            "timestamp": row[2],
+         }
+         for row in same_agency_events_rows
+        ]
 
-            print(f"\nMost similar event:")
+        if global_agency_events:
+            match, score = find_most_similar(embedding, global_agency_events)
+
+            if same_agency_events:
+                print(f"\nRecent events for same agency interface:")
+                for e in same_agency_events[:3]:  # limit to avoid spam
+                    print(f"  - anomaly={e['anomaly']} timestamp={e['timestamp']}")
+
+
+            print(f"\nMost similar event from other agencies:")
             print(f" Interface: {match['interface_id']}")
             print(f" Anomaly: {match['anomaly']}")
             print(f" Similarity score: {score:.4f}")
@@ -80,12 +106,25 @@ def run_consumer():
 
             if score > 0.9:
                 print("\nGenerating root cause analysis...\n")
-                explanation = generate_root_cause(event, match, score)
+                explanation = generate_root_cause(event, match, score, same_agency_events)
                 print(f"Root Cause Analysis:")
                 print(explanation)
+            else:
+                print("\nNo sufficiently similar past event found for root cause analysis.")
 
-
+        # create the embedding list of the incoming event to store in postgres along side the event data.
         embedding_list = embedding.tolist() #convert numpy (numpy = the type returned by sentence-transformers) array to list since postgres can store lists but not numpy arrays.
+
+
+        # Extract fields from event with defaults for missing values.
+        interface_id = event['interface_id']  # required
+        anomaly = event['anomaly']            # required
+        vendor = event.get('vendor', 'unknown')
+        timestamp = event.get('timestamp')
+        schema_hash = event.get('schema_hash')
+        rows_synced = event.get('rows_synced', 0)
+        null_rate = event.get('null_rate', 0.0)
+        execution_time_ms = event.get('execution_time_ms', 0)
 
         cur.execute("""
             INSERT INTO interface_events (
@@ -95,14 +134,14 @@ def run_consumer():
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            event['interface_id'],
-            event['vendor'],
-            event['timestamp'],
-            event['rows_synced'],
-            event['null_rate'],
-            event['execution_time_ms'],
-            event['schema_hash'],
-            event['anomaly'],
+            interface_id,    
+            vendor,    
+            timestamp,    
+            rows_synced,    
+            null_rate,    
+            execution_time_ms,    
+            schema_hash,    
+            anomaly,    
             embedding_list
     ))
 

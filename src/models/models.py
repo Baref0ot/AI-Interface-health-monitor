@@ -7,9 +7,9 @@ from datetime import datetime  # For timestamping events
 class InterfaceEvent (BaseModel):
     interface_id: str
     vendor: str
-    timestamp: datetime
+    timestamp: datetime = None
     rows_synced: int
     null_rate: float
     execution_time_ms: int
-    schema_hash: str
+    schema_hash: str = None 
     anomaly: Optional[str] = None

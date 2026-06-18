@@ -6,40 +6,92 @@ load_dotenv() # loads .env into environment
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def generate_root_cause(current_event: dict, similar_event: dict, similarity_score: float) -> str:
+
+
+def generate_root_cause(current_event: dict, similar_event: dict, similarity_score: float, recent_events_of_same_agency: dict) -> str:
     """
     Use OpenAI to generate a root cause analysis based on the current event and a similar past event.
     """
+
+    formatted_history = [ 
+        f"{e['timestamp']} → {e['anomaly']}" 
+        for e in recent_events_of_same_agency
+    ]
+
     prompt = f"""
-        You are an expert in diagnosing data interface issues.
+        You are a senior backend engineer supporting police CAD/RMS integrations.
 
-        STRICT RULES:
-        - Only use the data provided below.
-        - Do NOT mention any vendor, system, or technology that is not explicitly listed.
-        - If unsure, say "insufficient information" instead of guessing.
+        Your job is to diagnose integration failures and infer likely system configuration or operational issues.
 
-        CURRENT EVENT:
-        Interface: {current_event['interface_id']}
-        Vendor: {current_event['vendor']}
-        Rows Synced: {current_event['rows_synced']}
-        Null Rate: {current_event['null_rate']}
-        Execution Time: {current_event['execution_time_ms']}
-        Anomaly: {current_event['anomaly']}
+        --- CURRENT EVENT ---
+        Interface: {current_event.get("interface_id")}
+        Exception Type: {current_event.get("exception_type")}
+        Module: {current_event.get("module")}
+        Interface Type: {current_event.get("interface_type")}
 
-        SIMILAR PAST EVENT:
-        Interface: {similar_event['interface_id']}
-        Vendor: {similar_event['vendor']}
-        Rows Synced: {similar_event['rows_synced']}
-        Null Rate: {similar_event['null_rate']}
-        Execution Time: {similar_event['execution_time_ms']}
-        Anomaly: {similar_event['anomaly']}
+        Error Message:
+        {current_event.get("error_message")}
 
-        Similarity Score: {similarity_score:.2f}
+        --- MOST SIMILAR PAST EVENT (GLOBAL) ---
+        Interface: {similar_event.get("interface_id")}
+        Anomaly: {similar_event.get("anomaly")}
+        Similarity Score: {similarity_score}
 
-        Explain the most likely root cause based ONLY on this data.
-        Be concise (2–3 sentences).
-        Do not introduce external assumptions.
-    """ 
+        --- RECENT HISTORY (SAME AGENCY / INTERFACE) ---
+        Most recent first:
+        {formatted_history}
+
+        INSTRUCTIONS:
+
+        1. Explain what the error means in plain English.
+        2. Identify the most likely root cause based on the error itself.
+        3. Infer what type of system configuration is being used (e.g., API integration, database connection, Windows auth, etc.).
+        4. Analyze the recent history carefully and form a CLEAR conclusion:
+            - If multiple errors occur at the same timestamp, interpret this as a system-wide or batch failure, NOT isolated incidents
+            - Look for time-based patterns such as recurring failures (e.g., weekly/monthly intervals), sudden gaps, or repeated timestamps
+            - If events occur at regular intervals (e.g., ~30 days apart), consider causes such as scheduled jobs, certificate/token expiration, or recurring configuration drift
+            - If patterns are approximate (e.g., ~30 days apart), describe them as approximate rather than exact
+            - Determine whether the pattern suggests:
+            - batch processing failure
+            - upstream data issue
+            - API outage or rejection
+            - deployment or configuration change
+            - Do not just describe the pattern — EXPLAIN what it likely indicates and why
+        5. Combine the error details AND the historical pattern to form a STRONG, specific hypothesis about what failed
+            - Avoid vague statements like “could be” or “may be”
+            - Prioritize the MOST likely explanation
+        6. Suggest the FIRST things an engineer should check before contacting the customer.
+        7. Explain why this type of issue commonly occurs in real-world environments.
+
+        IMPORTANT:
+        - Be specific and practical, not generic.
+        - If the history does NOT suggest a pattern, ignore it.
+        - If a pattern IS present, explicitly call it out and use it in your reasoning.
+        - Prioritize actionable troubleshooting steps.
+
+        ANSWER FORMAT:
+
+        Root Cause:
+        <short summary of the issue>
+
+        What it means:
+        <plain English explanation>
+
+        Observed Pattern (if any):
+        <what you see from recent_events_of_same_agency>
+
+        Likely System Setup (inferred):
+        <what kind of system/config is likely in use>
+
+        Most Likely Cause:
+        <your best hypothesis>
+
+        What to Check FIRST:
+        <top actionable steps>
+
+        Why This Happens:
+        <root explanation of why systems fail this way>
+    """
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",

@@ -1,0 +1,110 @@
+{
+  "environment": "prod",
+  "event_id": "5a1136b108ba401a9d4afe9821bfe0fb",
+  "exception": {
+    "values": [
+      {
+        "module": "Framework Microsoft SqlClient Data Provider",
+        "type": "us-az-st-johns-pd:cad - SqlException",
+        "value": "A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections. (provider: Named Pipes Provider, error: 40 - Could not open a connection to SQL Server)"
+      }
+    ]
+  },
+  "extra": {
+    "logging_db": "Interfaces",
+    "logging_schema": "dbo",
+    "logging_server": "redacted",
+    "main_db": "redacted",
+    "main_server": "redacted",
+    "query": "redacted" 
+},
+  "fingerprint": [
+    "us-az-st-johns-pd",
+    "cad",
+    "SqlException",
+    "A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections. (provider: Named Pipes Provider, error: 40 - Could not open a connection to SQL Server)"
+  ],
+  "host": "redacted",
+  "platform": "other",
+  "sdk": {
+    "name": "CommunityConnect-DataDog",
+    "version": "1.0"
+  },
+  "server_name": "redacted",
+  "service": "cc-integrations",
+  "stacktrace": {
+    "frames": [
+      {
+        "abs_path": "redacted",
+        "colno": 17,
+        "context_line": "redacted",
+        "filename": "redacted",
+        "lineno": 195,
+        "post_context": [
+          "redacted"
+        ],
+        "pre_context": [
+          "redacted"
+        ]
+      },
+      {
+        "abs_path": "redacted",
+        "colno": 3,
+        "context_line": "redacted",
+        "filename": "redacted",
+        "lineno": 386,
+        "post_context": [
+          "redacted"
+        ],
+        "pre_context": [
+          "redacted"
+        ]
+      },
+      {
+        "abs_path": "redacted",
+        "colno": 18,
+        "context_line": "redacted",
+        "filename": "redacted",
+        "lineno": 180,
+        "post_context": [
+          "redacted"
+        ],
+        "pre_context": [
+          "redacted"
+        ]
+      },
+      {
+        "abs_path": "redacted",
+        "colno": 14,
+        "context_line": "redacted",
+        "filename": "redacted",
+        "lineno": 136,
+        "post_context": [
+          "redacted"
+        ],
+        "pre_context": [
+          "redacted"
+        ],
+        "vars": {
+          "ScriptStackTrace": "redacted"
+        }
+      }
+    ]
+  },
+  "status": "error",
+  "tags": {
+    "APIUser": "us-az-st-johns-pd",
+    "Interface": "cad",
+    "app": "CommunityConnect",
+    "businessUnit": "CommunityConnect",
+    "country": "usa",
+    "env": "prod",
+    "owner": "communityconnect-deployment-engineers",
+    "team": "communityconnect-deployment-engineers"
+  },
+  "timestamp": "2026-06-17T16:18:28.000Z",
+  "logger": "powershell",
+  "error": {
+    "type": "SqlException"
+  }
+}

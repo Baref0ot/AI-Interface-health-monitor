@@ -1,3 +1,4 @@
+import json
 import time
 from confluent_kafka import Producer
 from src.generator.synthetic import generate_event
@@ -34,3 +35,17 @@ def run_producer():
 
 if __name__ == "__main__":
     run_producer()
+
+
+
+def produce_event(event_dict: dict):
+    producer = create_producer()
+
+    producer.produce(
+        topic=TOPIC,
+        key=event_dict.get("interface_id", "unknown"),
+        value=json.dumps(event_dict),
+    )
+
+    producer.flush()
+    print(f" Sent ingested event for {event_dict.get('interface_id')}")

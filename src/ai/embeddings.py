@@ -3,18 +3,21 @@ from sentence_transformers import SentenceTransformer
 #Load model once (singleton) (important!)
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-def event_to_text(event: dict) -> str:
+def event_to_text(event):
+    return f"""
+        Interface: {event.get('interface_id')}
+        Type: {event.get('interface_type')}
+        Vendor: {event.get('vendor')}
+    
+        Exception Type: {event.get('exception_type')}
+        Module: {event.get('module')}
+    
+        Error Message:
+        {event.get('error_message')}
+    
+        Fingerprint:
+        {event.get('fingerprint')}
     """
-    Convert structured event into human-readable text for embedding.
-    """
-    return (
-        f"Interface {event['interface_id']} from {event['vendor']} "
-        f"Processed {event['rows_synced']} rows, "
-        f"null rate {event['null_rate']}, "
-        f"execution time {event['execution_time_ms']} ms, "
-        f"schema hash {event['schema_hash']}, "
-        f"anomaly type {event['anomaly']}"
-    )
 
 def generate_embedding(event: dict):
     """

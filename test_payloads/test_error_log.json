@@ -1,0 +1,24 @@
+{
+  "exception": {
+    "values": [
+      {
+        "module": "Framework Microsoft SqlClient Data Provider",
+        "type": "SqlException",
+        "value": "A network-related or instance-specific error occurred while establishing a connection to SQL Server"
+      }
+    ]
+  },
+  "error": {
+    "type": "SqlException"
+  },
+  "fingerprint": [
+    "us-az-st-johns-pd",
+    "cad",
+    "SqlException"
+  ],
+  "tags": {
+    "APIUser": "us-az-st-johns-pd",
+    "Interface": "cad",
+    "app": "CommunityConnect"
+  }
+}

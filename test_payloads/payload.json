@@ -1,0 +1,97 @@
+{
+  "environment": "prod",
+  "event_id": "cc369cb9a076466bbd80c407ce2fb002",
+  "exception": {
+    "values": [
+      {
+        "module": "Microsoft.PowerShell.Commands.Utility",
+        "type": "us-ca-grover-beach-pd:cad - WebException",
+        "value": "The remote server returned an error: (400) Bad Request."
+      }
+    ]
+  },
+  "extra": {
+    "endpoint": "https://engage.spidrtech.com/api/v1/cad/events",
+    "logging_db": "interfaces",
+    "logging_schema": "dbo",
+    "logging_server": "redacted",
+    "main_db": "interfaces",
+    "main_server": "redacted",
+    "query": "redacted",    
+    "query_results_count": 0
+  },
+  "fingerprint": [
+    "us-ca-grover-beach-pd",
+    "cad",
+    "WebException",
+    "The remote server returned an error: (400) Bad Request."
+  ],
+  "host": "redacted",
+  "platform": "other",
+  "sdk": {
+    "name": "CommunityConnect-DataDog",
+    "version": "1.0"
+  },
+  "server_name": "redacted",
+  "service": "cc-integrations",
+  "stacktrace": {
+    "frames": [
+      {
+        "abs_path": "redacted",
+        "colno": 3,
+        "context_line": "  Post-CAD-Event $event_obj\n",
+        "filename": "redacted",
+        "lineno": 154,
+        "post_context": [
+          "redacted"
+        ],
+        "pre_context": [
+          "redacted"
+        ]
+      },
+      {
+        "abs_path": "redacted",
+        "colno": 3,
+        "context_line": "  Post-API 'cad/events' $payload\n",
+        "filename": "redacted",
+        "lineno": 354,
+        "post_context": ["redacted"],
+        "pre_context": [
+          "redacted"
+        ]
+      },
+      {
+        "abs_path": "redacted",
+        "colno": 17,
+        "context_line": "    $response = Invoke-WebRequest -Method 'Post' -Headers $headers -Body $POSTpayload -Uri $endpoint -ContentType 'application/json' -TimeoutSec 61 -UseBasicParsing\n",
+        "filename": "redacted",
+        "lineno": 312,
+        "post_context": [
+          "redacted"
+        ],
+        "pre_context": [
+          "redacted"
+        ],
+        "vars": {
+          "ScriptStackTrace": "redacted"
+        }
+      }
+    ]
+  },
+  "status": "error",
+  "tags": {
+    "APIUser": "us-ca-grover-beach-pd",
+    "Interface": "cad",
+    "app": "CommunityConnect",
+    "businessUnit": "CommunityConnect",
+    "country": "usa",
+    "env": "prod",
+    "owner": "communityconnect-deployment-engineers",
+    "team": "communityconnect-deployment-engineers"
+  },
+  "timestamp": "2026-06-17T15:56:05.000Z",
+  "logger": "powershell",
+  "error": {
+    "type": "WebException"
+  }
+}
