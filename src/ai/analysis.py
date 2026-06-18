@@ -1,5 +1,6 @@
 from dotenv import load_dotenv #used to load environment variables from .env file.
 import os
+import json
 from openai import OpenAI
 
 load_dotenv() # loads .env into environment
@@ -8,7 +9,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 
-def generate_root_cause(current_event: dict, similar_event: dict, similarity_score: float, recent_events_of_same_agency: dict) -> str:
+def generate_root_cause(current_event: dict, similar_event: dict, similarity_score: float, recent_events_of_same_agency: dict) -> dict:
     """
     Use OpenAI to generate a root cause analysis based on the current event and a similar past event.
     """
@@ -91,6 +92,16 @@ def generate_root_cause(current_event: dict, similar_event: dict, similarity_sco
 
         Why This Happens:
         <root explanation of why systems fail this way>
+
+        Return ONLY valid JSON in this exact shape:
+        {{  "root_cause": "",  
+            "what_it_means": "",  
+            "observed_pattern": "",  
+            "likely_system_setup": "",  
+            "most_likely_cause": "",  
+            "what_to_check_first": [],  
+            "why_this_happens": ""
+        }}
     """
 
     response = client.chat.completions.create(
@@ -99,4 +110,18 @@ def generate_root_cause(current_event: dict, similar_event: dict, similarity_sco
         temperature=0.3, # Lower temperature for more deterministic output since we want consistent root cause analysis 
     )
 
-    return response.choices[0].message.content
+    content = response.choices[0].message.content
+
+    try:
+       return json.loads(content)
+    except json.JSONDecodeError:
+        return {
+            "error": "LLM did not return valid JSON",
+            "root_cause": "Unable to parse structured response",
+            "what_it_means": content,
+            "observed_pattern": "",
+            "likely_system_setup": "",
+            "most_likely_cause": "",
+            "what_to_check_first": [],
+            "why_this_happens": ""
+        }

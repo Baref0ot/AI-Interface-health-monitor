@@ -1,6 +1,6 @@
 import json
 from confluent_kafka import Consumer
-from src.storage.db import get_connection
+from src.storage.db import get_connection, save_analysis
 from src.ai.embeddings import generate_embedding
 from src.ai.similarity import find_most_similar
 from src.ai.analysis import generate_root_cause
@@ -106,9 +106,26 @@ def run_consumer():
 
             if score > 0.9:
                 print("\nGenerating root cause analysis...\n")
+
+                # call the LLM to generate a root cause analysis based on the current event, the most similar past event from any agency, and the recent history of events for this same agency.
                 explanation = generate_root_cause(event, match, score, same_agency_events)
+
                 print(f"Root Cause Analysis:")
                 print(explanation)
+
+                # convert the LLM explation to JSON to store in database.
+                root_cause_payload = json.dumps(explanation)
+
+                #save the analysis to the database for future reference and learning.
+                save_analysis(
+                    interface_id=event.get("interface_id"),
+                    anomaly=event.get("anomaly"),
+                    similarity_score=score,
+                    similar_interface_id=match.get("interface_id"),
+                    root_cause=root_cause_payload
+                )
+                print(f"Root cause analysis saved to database.")
+
             else:
                 print("\nNo sufficiently similar past event found for root cause analysis.")
 

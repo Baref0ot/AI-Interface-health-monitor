@@ -7,7 +7,7 @@ from datetime import datetime
 from src.ai.similarity import find_most_similar
 from src.ai.embeddings import generate_embedding
 from src.ai.analysis import generate_root_cause
-from src.storage.db import get_all_events, get_all_events_with_embeddings, get_anomalies, get_latest_event
+from src.storage.db import get_all_events, get_all_events_with_embeddings, get_anomalies, get_latest_event, get_latest_analysis
 from src.streaming.producer import produce_event
 
 app = FastAPI(title="Interface Health Monitor")
@@ -141,3 +141,13 @@ def transform_error_log(payload: dict):
         "module": module,
         "fingerprint": fingerprint
     }
+
+
+@app.get("/analysis/latest")
+def latest_analysis():
+    analysis = get_latest_analysis()
+
+    if not analysis:
+        return {"message": "No analysis available yet"}
+
+    return analysis
