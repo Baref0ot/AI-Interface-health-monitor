@@ -46,7 +46,7 @@ def get_anomalies():
 
     cur.execute("""
         SELECT interface_id, vendor, rows_synced, null_rate,
-               execution_time_ms, anomaly
+               execution_time_ms, anomaly, timestamp
         FROM interface_events
         WHERE anomaly IS NOT NULL
         ORDER BY id DESC
@@ -63,7 +63,8 @@ def get_anomalies():
             "rows_synced": r[2],
             "null_rate": r[3],
             "execution_time_ms": r[4],
-            "anomaly": r[5]
+            "anomaly": r[5],
+            "timestamp": r[6]
         }
         for r in rows
     ]
