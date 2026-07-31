@@ -85,6 +85,7 @@ flowchart TD;
 python3 -m pip install -r requirements/base.txt
 python3 -m pip install -r requirements/ai.txt
 python3 -m pip install -r requirements/kafka.txt
+Add .env file at src level with OPEN_API_KEY key with valid OPEN AI API KEY (REDACTED).
 
 ### Start infrastructure
 docker compose up -d          
